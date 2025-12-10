@@ -10,9 +10,14 @@ import java.util.List;
 public class RestaurantRepository {
 
     private final List<Restaurant> restaurants = new ArrayList<>();
+    private long idCounter = 1;
 
     public Restaurant save(Restaurant restaurant) {
-        restaurants.removeIf(r -> r.getId().equals(restaurant.getId()));
+        if (restaurant.getId() == null) {
+            restaurant.setId(idCounter++);
+        } else {
+            restaurants.removeIf(r -> r.getId().equals(restaurant.getId()));
+        }
         restaurants.add(restaurant);
         return restaurant;
     }
