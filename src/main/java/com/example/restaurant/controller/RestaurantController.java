@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
@@ -62,4 +63,19 @@ public class RestaurantController {
         restaurantService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search/by-rating")
+    public List<RestaurantResponseDTO> findByRating(
+            @RequestParam BigDecimal minRating
+    ) {
+        return restaurantService.findByMinRating(minRating);
+    }
+
+    @GetMapping("/search/by-rating-query")
+    public List<RestaurantResponseDTO> findByRatingQuery(
+            @RequestParam BigDecimal minRating
+    ) {
+        return restaurantService.findByMinRatingQuery(minRating);
+    }
+
 }

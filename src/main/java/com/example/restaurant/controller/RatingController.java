@@ -5,6 +5,7 @@ import com.example.restaurant.dto.rating.RatingResponseDTO;
 import com.example.restaurant.service.RatingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,48 +19,60 @@ public class RatingController {
 
     private final RatingService ratingService;
 
-    // создать: POST /api/reviews
+    // создать
     @PostMapping
     public ResponseEntity<RatingResponseDTO> create(@Valid @RequestBody RatingRequestDTO dto) {
         RatingResponseDTO created = ratingService.create(dto);
         return ResponseEntity
-                .created(URI.create("/api/reviews/" + created.id()))
+                .created(URI.create("/api/reviews/"
+                        + created.visitorId() + "/" + created.restaurantId()))
                 .body(created);
     }
 
-    // вывод всех: GET /api/reviews
+    // вывести всех
     @GetMapping
     public List<RatingResponseDTO> getAll() {
         return ratingService.findAll();
     }
 
-    // вывод одного: GET /api/reviews/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<RatingResponseDTO> getById(@PathVariable Long id) {
-        RatingResponseDTO rating = ratingService.findById(id);
-        if (rating == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(rating);
+    // вывести одного
+    @GetMapping("/{visitorId}/{restaurantId}")
+    public ResponseEntity<RatingResponseDTO> getById(
+            @PathVariable Long visitorId,
+            @PathVariable Long restaurantId
+    ) {
+        RatingResponseDTO rating = ratingService.findById(visitorId, restaurantId);
+        return rating != null ? ResponseEntity.ok(rating) : ResponseEntity.notFound().build();
     }
 
-    // обновить: PUT /api/reviews/{id}
-    @PutMapping("/{id}")
+    // обновить
+    @PutMapping("/{visitorId}/{restaurantId}")
     public ResponseEntity<RatingResponseDTO> update(
-            @PathVariable Long id,
+            @PathVariable Long visitorId,
+            @PathVariable Long restaurantId,
             @Valid @RequestBody RatingRequestDTO dto
     ) {
-        RatingResponseDTO updated = ratingService.update(id, dto);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
+        RatingResponseDTO updated = ratingService.update(visitorId, restaurantId, dto);
+        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
     }
 
-    // удалить: DELETE /api/reviews/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        ratingService.delete(id);
+    // удалить
+    @DeleteMapping("/{visitorId}/{restaurantId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long visitorId,
+            @PathVariable Long restaurantId
+    ) {
+        ratingService.delete(visitorId, restaurantId);
         return ResponseEntity.noContent().build();
+    }
+
+    // пагинация
+    @GetMapping("/page")
+    public Page<RatingResponseDTO> getPage(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam(defaultValue = "true") boolean asc
+    ) {
+        return ratingService.findPage(page, size, asc);
     }
 }

@@ -19,34 +19,36 @@ public class VisitorService {
 
     public VisitorResponseDTO create(VisitorRequestDTO dto) {
         Visitor visitor = visitorMapper.toEntity(dto);
-        visitorRepository.save(visitor);
+        visitor = visitorRepository.save(visitor);
         return visitorMapper.toResponseDto(visitor);
     }
 
     public List<VisitorResponseDTO> findAll() {
-        return visitorMapper.toResponseDtoList(visitorRepository.findAll());
+        return visitorRepository.findAll()
+                .stream()
+                .map(visitorMapper::toResponseDto)
+                .toList();
     }
 
     public VisitorResponseDTO findById(Long id) {
-        Visitor v = visitorRepository.findById(id);
-        return v != null ? visitorMapper.toResponseDto(v) : null;
+        return visitorRepository.findById(id)
+                .map(visitorMapper::toResponseDto)
+                .orElse(null);
     }
 
     public VisitorResponseDTO update(Long id, VisitorRequestDTO dto) {
-        Visitor existing = visitorRepository.findById(id);
-        if (existing == null) {
-            return null;
-        }
-
-        existing.setName(dto.name());
-        existing.setAge(dto.age());
-        existing.setGender(dto.gender());
-
-        visitorRepository.save(existing);
-        return visitorMapper.toResponseDto(existing);
+        return visitorRepository.findById(id)
+                .map(existing -> {
+                    existing.setName(dto.name());
+                    existing.setAge(dto.age());
+                    existing.setGender(dto.gender());
+                    Visitor saved = visitorRepository.save(existing);
+                    return visitorMapper.toResponseDto(saved);
+                })
+                .orElse(null);
     }
 
     public void delete(Long id) {
-        visitorRepository.remove(id);
+        visitorRepository.deleteById(id);
     }
 }

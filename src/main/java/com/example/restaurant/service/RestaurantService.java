@@ -8,6 +8,7 @@ import com.example.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -19,35 +20,54 @@ public class RestaurantService {
 
     public RestaurantResponseDTO create(RestaurantRequestDTO dto) {
         Restaurant restaurant = restaurantMapper.toEntity(dto);
-        restaurantRepository.save(restaurant);
+        if (restaurant.getUserRating() == null) {
+            restaurant.setUserRating(BigDecimal.ZERO);
+        }
+        restaurant = restaurantRepository.save(restaurant);
         return restaurantMapper.toResponseDto(restaurant);
     }
 
     public List<RestaurantResponseDTO> findAll() {
-        return restaurantMapper.toResponseDtoList(restaurantRepository.findAll());
+        return restaurantRepository.findAll()
+                .stream()
+                .map(restaurantMapper::toResponseDto)
+                .toList();
     }
 
     public RestaurantResponseDTO findById(Long id) {
-        Restaurant r = restaurantRepository.findById(id);
-        return r != null ? restaurantMapper.toResponseDto(r) : null;
+        return restaurantRepository.findById(id)
+                .map(restaurantMapper::toResponseDto)
+                .orElse(null);
     }
 
     public RestaurantResponseDTO update(Long id, RestaurantRequestDTO dto) {
-        Restaurant existing = restaurantRepository.findById(id);
-        if (existing == null) {
-            return null;
-        }
-
-        existing.setName(dto.name());
-        existing.setDescription(dto.description());
-        existing.setCuisineType(dto.cuisineType());
-        existing.setAverageCheck(dto.averageCheck());
-
-        restaurantRepository.save(existing);
-        return restaurantMapper.toResponseDto(existing);
+        return restaurantRepository.findById(id)
+                .map(existing -> {
+                    existing.setName(dto.name());
+                    existing.setDescription(dto.description());
+                    existing.setCuisineType(dto.cuisineType());
+                    existing.setAverageCheck(dto.averageCheck());
+                    Restaurant saved = restaurantRepository.save(existing);
+                    return restaurantMapper.toResponseDto(saved);
+                })
+                .orElse(null);
     }
 
     public void delete(Long id) {
-        restaurantRepository.remove(id);
+        restaurantRepository.deleteById(id);
+    }
+
+    public List<RestaurantResponseDTO> findByMinRating(BigDecimal minRating) {
+        return restaurantRepository.findByUserRatingGreaterThanEqual(minRating)
+                .stream()
+                .map(restaurantMapper::toResponseDto)
+                .toList();
+    }
+
+    public List<RestaurantResponseDTO> findByMinRatingQuery(BigDecimal minRating) {
+        return restaurantRepository.findWithRatingAtLeast(minRating)
+                .stream()
+                .map(restaurantMapper::toResponseDto)
+                .toList();
     }
 }

@@ -1,29 +1,34 @@
 package com.example.restaurant.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 
+@Entity
+@Table(name = "restaurants")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Restaurant {
-    @NotNull
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(nullable = false)
     private String name;
 
     private String description;
 
-    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CuisineType cuisineType;
 
-    @NotNull
+    @Column(nullable = false)
     private BigDecimal averageCheck;
 
-    @Builder.Default
-    private BigDecimal userRating = BigDecimal.ZERO;
+    @Column(nullable = false)
+    private BigDecimal userRating;
 }
