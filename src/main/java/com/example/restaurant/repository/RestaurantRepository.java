@@ -1,39 +1,17 @@
 package com.example.restaurant.repository;
 
 import com.example.restaurant.entity.Restaurant;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
-public class RestaurantRepository {
+public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
+    List<Restaurant> findByUserRatingGreaterThanEqual(BigDecimal minRating);
 
-    private final List<Restaurant> restaurants = new ArrayList<>();
-    private long idCounter = 1;
-
-    public Restaurant save(Restaurant restaurant) {
-        if (restaurant.getId() == null) {
-            restaurant.setId(idCounter++);
-        } else {
-            restaurants.removeIf(r -> r.getId().equals(restaurant.getId()));
-        }
-        restaurants.add(restaurant);
-        return restaurant;
-    }
-
-    public void remove(Long id) {
-        restaurants.removeIf(r -> r.getId().equals(id));
-    }
-
-    public List<Restaurant> findAll() {
-        return new ArrayList<>(restaurants);
-    }
-
-    public Restaurant findById(Long id) {
-        return restaurants.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
+    @Query("select r from Restaurant r where r.userRating >= :minRating")
+    List<Restaurant> findWithRatingAtLeast(BigDecimal minRating);
 }

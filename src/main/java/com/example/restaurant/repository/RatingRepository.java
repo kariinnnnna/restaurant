@@ -1,40 +1,18 @@
 package com.example.restaurant.repository;
 
 import com.example.restaurant.entity.Rating;
+import com.example.restaurant.entity.RatingId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
-public class RatingRepository {
+public interface RatingRepository extends JpaRepository<Rating, RatingId> {
 
-    private final List<Rating> ratings = new ArrayList<>();
-    private final AtomicLong idGenerator = new AtomicLong(1L);
+    Page<Rating> findAll(Pageable pageable);
 
-    public Rating save(Rating rating) {
-        if (rating.getId() == null) {
-            rating.setId(idGenerator.getAndIncrement());
-        } else {
-            ratings.removeIf(r -> r.getId().equals(rating.getId()));
-        }
-        ratings.add(rating);
-        return rating;
-    }
-
-    public void remove(Long id) {
-        ratings.removeIf(r -> r.getId().equals(id));
-    }
-
-    public List<Rating> findAll() {
-        return new ArrayList<>(ratings);
-    }
-
-    public Rating findById(Long id) {
-        return ratings.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
+    List<Rating> findByRestaurant_Id(Long restaurantId);
 }
